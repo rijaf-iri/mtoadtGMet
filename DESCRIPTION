@@ -1,0 +1,21 @@
+Package: mtoadtGMet
+Version: 1.0
+Title: Processing AWS data from Ghana Meteorological Agency
+Description: process AWS data from GMet's AWS networks, aggregate AWS data to a different time scale, analyze the processed AWS data and handle users request from GMet AWS Data Tools web application and API. 
+Author: Rija Faniriantsoa <rijaf@iri.columbia.edu>
+Maintainer: Rija Faniriantsoa <rijaf@iri.columbia.com>
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+NeedsCompilation: no
+Date: 2022-03-23
+Imports: 
+    jsonlite,
+    DBI,
+    RMySQL,
+    reshape2,
+    fields,
+    RColorBrewer,
+    matrixStats,
+    openair,
+RoxygenNote: 7.1.1
