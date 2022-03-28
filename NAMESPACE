@@ -9,6 +9,7 @@ export(readCoords)
 export(readCoordsMap)
 export(readCoordsWind)
 export(getWindHeight)
+export(readAWSStatus)
 
 export(getAWSTimeRange)
 
@@ -39,3 +40,4 @@ export(downWindFreqCSV)
 export(downHourlyMSLP)
 export(downRainAccumulSP)
 export(downRainAccumulTS)
+export(downAWSStatusTable)

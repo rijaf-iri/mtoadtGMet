@@ -388,3 +388,27 @@ downRainAccumulTS <- function(tstep, net_aws, start, end, accumul, aws_dir){
     return(convCSV(don))
 }
 
+##########
+#' Download AWS status.
+#'
+#' Download AWS status table.
+#' 
+#' @param aws_dir full path to the directory containing ADT.\cr
+#'               Example: "D:/GMet_AWS_v2"
+#' 
+#' @return CSV object
+#' 
+#' @export
+
+downAWSStatusTable <- function(aws_dir){
+    file_stat <- file.path(aws_dir, "AWS_DATA", "STATUS", "aws_status.rds")
+    aws <- readRDS(file_stat)
+
+    crds <- aws$coords
+    daty <- format(aws$time, "%Y-%m-%d %H:00:00")
+    don <- as.data.frame(aws$status)
+    names(don) <- daty
+    don <- cbind(crds, don)
+
+    return(convCSV(don))
+}
