@@ -8,6 +8,7 @@ importFrom("graphics", ".filled.contour", "abline", "axTicks", "axis",
 export(readCoords)
 export(readCoordsMap)
 export(readCoordsWind)
+export(getWindHeight)
 
 export(getAWSTimeRange)
 

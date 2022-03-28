@@ -1,7 +1,7 @@
 
-#' Get 5, 10 or 15 minutes data.
+#' Get minutes data.
 #'
-#' Get 5, 10 or 15 minutes data to display on chart.
+#' Get minutes data to display on chart.
 #' 
 #' @param net_aws the network code and AWS ID, form <network code>_<AWS ID>. 
 #' AWS network code, 1: adcon, 2: tahmo.

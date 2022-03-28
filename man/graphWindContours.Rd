@@ -10,7 +10,7 @@ graphWindContours(net_aws, height, tstep, start, end, centre, aws_dir)
 \item{net_aws}{the network code and AWS ID, form <network code>_<AWS ID>. 
 AWS network code, 1: adcon, 2: tahmo.}
 
-\item{height}{the observation height.}
+\item{height}{wind speed and direction heights above ground, format "<speedHeight>_<directionHeight>".}
 
 \item{tstep}{time step of the data.}
 
