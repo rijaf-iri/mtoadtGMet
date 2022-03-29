@@ -1,5 +1,7 @@
 
-Sys.setenv(TZ = "Africa/Accra")
+.onLoad <- function(libname, pkgname){
+    Sys.setenv(TZ = "Africa/Accra")
+}
 
 convJSON <- function(obj, ...){
     args <- list(...)
