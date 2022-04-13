@@ -5,7 +5,7 @@
 #' 
 #' @param tstep time basis to accumulate the data.
 #' @param net_aws a vector of the network code and AWS ID, form <network code>_<AWS ID>.
-#' AWS network code, 1: adcon, 2: tahmo.
+#' AWS network code, 1: adcon_synop, 2: adcon_aws, 3: tahmo.
 #' @param start start date.
 #' @param end end date.
 #' @param accumul accumulation duration.
@@ -100,6 +100,8 @@ mapRainAccumul <- function(tstep, time, accumul, aws_dir)
 
 tsRainAccumulAWS <- function(tstep, net_aws, start, end, accumul, aws_dir)
 {
+    on.exit(DBI::dbDisconnect(conn))
+
     tz <- Sys.getenv("TZ")
     origin <- "1970-01-01"
     nmCol <- c("network_code", "network", "id", "name",
@@ -123,10 +125,8 @@ tsRainAccumulAWS <- function(tstep, net_aws, start, end, accumul, aws_dir)
     if(is.null(awsPars$PARS_Info[['5']])) return(out)
 
     ######
-    adt_args <- readRDS(file.path(aws_dir, "AWS_DATA", "AUTH", "adt.con"))
-    conn <- try(connect.database(adt_args$connection,
-                   RMySQL::MySQL()), silent = TRUE)
-    if(inherits(conn, "try-error")){
+    conn <- connect.adt_db(aws_dir)
+    if(is.null(conn)){
         out$status <- 'failed-connection'
         return(out)
     }
@@ -153,7 +153,6 @@ tsRainAccumulAWS <- function(tstep, net_aws, start, end, accumul, aws_dir)
                     start, " AND obs_time <= ", end, ")")
 
     qres <- DBI::dbGetQuery(conn, query)
-    DBI::dbDisconnect(conn)
 
     if(nrow(qres) == 0) return(out)
 
@@ -185,10 +184,12 @@ tsRainAccumulAWS <- function(tstep, net_aws, start, end, accumul, aws_dir)
 ################
 
 spRainAccumulAWS <- function(tstep, time, accumul, aws_dir){
+    on.exit(DBI::dbDisconnect(conn))
+
     tz <- Sys.getenv("TZ")
     origin <- "1970-01-01"
-    netNOM <- c("Adcon", "Tahmo")
-    netCRDS <- c("adcon_crds", "tahmo_crds")
+    netNOM <- c("Adcon_Synop", "Adcon_AWS", "Tahmo")
+    netCRDS <- c("adcon_synop_crds", "adcon_aws_crds", "tahmo_crds")
     nmCol <- c("id", "name", "longitude", "latitude", "altitude", "network")
 
     ####
@@ -228,10 +229,8 @@ spRainAccumulAWS <- function(tstep, time, accumul, aws_dir){
     data.null <- list(date = infoData$date, data = "null", status = "no-data")
 
     ######
-    adt_args <- readRDS(file.path(aws_dir, "AWS_DATA", "AUTH", "adt.con"))
-    conn <- try(connect.database(adt_args$connection,
-                   RMySQL::MySQL()), silent = TRUE)
-    if(inherits(conn, "try-error")){
+    conn <- connect.adt_db(aws_dir)
+    if(is.null(conn)){
         data.null$status <- "failed-connection"
         return(convJSON(data.null))
     }
@@ -281,8 +280,6 @@ spRainAccumulAWS <- function(tstep, time, accumul, aws_dir){
 
         return(crd)
     })
-
-    DBI::dbDisconnect(conn)
 
     id_net <- lapply(crds, '[[', 'network_code')
     id_net <- do.call(c, id_net)

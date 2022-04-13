@@ -8,7 +8,7 @@ downWindFreqCSV(net_aws, height, tstep, start, end, aws_dir)
 }
 \arguments{
 \item{net_aws}{the network code and AWS ID, form <network code>_<AWS ID>. 
-AWS network code, 1: tahmo, 2: campbell, 3: sutron, 4: seba, 5: microstep, 6: adcon.}
+AWS network code, 1: adcon_synop, 2: adcon_aws, 3: tahmo.}
 
 \item{height}{the observation height.}
 

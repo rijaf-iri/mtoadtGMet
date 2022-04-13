@@ -139,10 +139,12 @@ mapMinAWSData <- function(time, aws_dir){
 }
 
 spatialMinAWSData <- function(time, aws_dir){
+    on.exit(DBI::dbDisconnect(conn))
+
     tz <- Sys.getenv("TZ")
     origin <- "1970-01-01"
-    netNOM <- c("Adcon", "Tahmo")
-    netCRDS <- c("adcon_crds", "tahmo_crds")
+    netNOM <- c("Adcon_Synop", "Adcon_AWS", "Tahmo")
+    netCRDS <- c("adcon_synop_crds", "adcon_aws_crds", "tahmo_crds")
     nmCol <- c("id", "name", "longitude", "latitude", "altitude", "network")
     nmVar <- c("network", "id", "height", "var_code", "stat_code", "value")
 
@@ -155,10 +157,8 @@ spatialMinAWSData <- function(time, aws_dir){
     data.null <- list(date = dout, data = "null", status = "no-data", vars = "null")
 
     ######
-    adt_args <- readRDS(file.path(aws_dir, "AWS_DATA", "AUTH", "adt.con"))
-    conn <- try(connect.database(adt_args$connection,
-                   RMySQL::MySQL()), silent = TRUE)
-    if(inherits(conn, "try-error")){
+    conn <- connect.adt_db(aws_dir)
+    if(is.null(conn)){
         data.null$status <- "failed-connection"
         return(data.null)
     }
@@ -180,8 +180,6 @@ spatialMinAWSData <- function(time, aws_dir){
 
         return(crd)
     })
-
-    DBI::dbDisconnect(conn)
 
     id_net <- lapply(crds, '[[', 'network_code')
     id_net <- do.call(c, id_net)
@@ -345,10 +343,12 @@ mapAggrAWSData <- function(tstep, time, aws_dir){
 }
 
 spatialAggrAWS <- function(tstep, time, aws_dir){
+    on.exit(DBI::dbDisconnect(conn))
+
     tz <- Sys.getenv("TZ")
     origin <- "1970-01-01"
-    netNOM <- c("Adcon", "Tahmo")
-    netCRDS <- c("adcon_crds", "tahmo_crds")
+    netNOM <- c("Adcon_Synop", "Adcon_AWS", "Tahmo")
+    netCRDS <- c("adcon_synop_crds", "adcon_aws_crds", "tahmo_crds")
     nmCol <- c("id", "name", "longitude", "latitude", "altitude", "network")
 
     ######
@@ -410,10 +410,8 @@ spatialAggrAWS <- function(tstep, time, aws_dir){
     data.null <- list(date = infoData$date, data = "null", status = "no-data", vars = "null")
 
     ######
-    adt_args <- readRDS(file.path(aws_dir, "AWS_DATA", "AUTH", "adt.con"))
-    conn <- try(connect.database(adt_args$connection,
-                   RMySQL::MySQL()), silent = TRUE)
-    if(inherits(conn, "try-error")){
+    conn <- connect.adt_db(aws_dir)
+    if(is.null(conn)){
         data.null$status <- "failed-connection"
         return(data.null)
     }
@@ -449,8 +447,6 @@ spatialAggrAWS <- function(tstep, time, aws_dir){
 
         return(crd)
     })
-
-    DBI::dbDisconnect(conn)
 
     id_net <- lapply(crds, '[[', 'network_code')
     id_net <- do.call(c, id_net)

@@ -1,5 +1,7 @@
 
 getAggrAWSData_allVars <- function(tstep, net_aws, start, end, aws_dir){
+    on.exit(DBI::dbDisconnect(conn))
+
     tz <- Sys.getenv("TZ")
     origin <- "1970-01-01"
 
@@ -8,10 +10,8 @@ getAggrAWSData_allVars <- function(tstep, net_aws, start, end, aws_dir){
     out <- data.frame(Date = NA, status = "no.data")
 
     ######
-    adt_args <- readRDS(file.path(aws_dir, "AWS_DATA", "AUTH", "adt.con"))
-    conn <- try(connect.database(adt_args$connection,
-                   RMySQL::MySQL()), silent = TRUE)
-    if(inherits(conn, "try-error")){
+    conn <- connect.adt_db(aws_dir)
+    if(is.null(conn)){
         out$status <- 'unable to connect to database'
         return(out)
     }
@@ -39,7 +39,6 @@ getAggrAWSData_allVars <- function(tstep, net_aws, start, end, aws_dir){
                     "obs_time >= ", start, " AND obs_time <= ", end, ")")
 
     qres <- DBI::dbGetQuery(conn, query)
-    DBI::dbDisconnect(conn)
 
     if(nrow(qres) == 0) return(out)
 
@@ -151,16 +150,16 @@ getAggrAWSData_allVars <- function(tstep, net_aws, start, end, aws_dir){
 ##########
 
 getAggrAWSData_oneVar <- function(tstep, net_aws, var_hgt, start, end, aws_dir){
+    on.exit(DBI::dbDisconnect(conn))
+
     tz <- Sys.getenv("TZ")
     origin <- "1970-01-01"
 
     out <- list(date = NULL, data = NULL, status = "no-data")
 
     ######
-    adt_args <- readRDS(file.path(aws_dir, "AWS_DATA", "AUTH", "adt.con"))
-    conn <- try(connect.database(adt_args$connection,
-                   RMySQL::MySQL()), silent = TRUE)
-    if(inherits(conn, "try-error")){
+    conn <- connect.adt_db(aws_dir)
+    if(is.null(conn)){
         out$status <- 'failed-connection'
         return(out)
     }
@@ -200,7 +199,6 @@ getAggrAWSData_oneVar <- function(tstep, net_aws, var_hgt, start, end, aws_dir){
     }
 
     qres <- DBI::dbGetQuery(conn, query)
-    DBI::dbDisconnect(conn)
 
     if(nrow(qres) == 0) return(out)
 
@@ -289,6 +287,8 @@ getAggrAWSData_oneVar <- function(tstep, net_aws, var_hgt, start, end, aws_dir){
 getAggrAWSData_awsSel <- function(tstep, net_aws, var_hgt, pars,
                                   start, end, aws_dir)
 {
+    on.exit(DBI::dbDisconnect(conn))
+
     tz <- Sys.getenv("TZ")
     origin <- "1970-01-01"
 
@@ -321,10 +321,8 @@ getAggrAWSData_awsSel <- function(tstep, net_aws, var_hgt, pars,
                 date = NULL, data = NULL, status = "no-data")
 
     ######
-    adt_args <- readRDS(file.path(aws_dir, "AWS_DATA", "AUTH", "adt.con"))
-    conn <- try(connect.database(adt_args$connection,
-                   RMySQL::MySQL()), silent = TRUE)
-    if(inherits(conn, "try-error")){
+    conn <- connect.adt_db(aws_dir)
+    if(is.null(conn)){
         out$status <- 'failed-connection'
         return(out)
     }
@@ -354,7 +352,6 @@ getAggrAWSData_awsSel <- function(tstep, net_aws, var_hgt, pars,
         ") AND (", "obs_time >= ", start, " AND obs_time <= ", end, ")")
 
     qres <- DBI::dbGetQuery(conn, query)
-    DBI::dbDisconnect(conn)
 
     if(nrow(qres) == 0){
         out$status <- "no-data"
@@ -475,9 +472,14 @@ wind2hourly <- function(dates, ws, wd){
 
 getWindData <- function(net_aws, height, tstep, start, end, aws_dir)
 {
+    on.exit(DBI::dbDisconnect(conn))
+
     tz <- Sys.getenv("TZ")
     origin <- "1970-01-01"
-    timestep_aws <- c(15, 5)
+
+    ######
+
+    timestep_aws <- c(15, 15, 5)
 
     ######
     parsFile <- file.path(aws_dir, "AWS_DATA", "JSON", "aws_parameters.json")
@@ -501,11 +503,10 @@ getWindData <- function(net_aws, height, tstep, start, end, aws_dir)
     end <- as.numeric(end)
 
     ######
-    adt_args <- readRDS(file.path(aws_dir, "AWS_DATA", "AUTH", "adt.con"))
-    conn <- try(connect.database(adt_args$connection,
-                   RMySQL::MySQL()), silent = TRUE)
-    if(inherits(conn, "try-error"))
+    conn <- connect.adt_db(aws_dir)
+    if(is.null(conn)){
         return(list(status = 'failed-connection'))
+    }
 
     qheight <- if(ws_hgt == wd_hgt) paste0("=", ws_hgt) else paste0(" IN (", wd_hgt, ", ", ws_hgt, ")")
     query <- paste0("SELECT obs_time, var_code, value, limit_check FROM aws_data0 WHERE (",
@@ -514,7 +515,6 @@ getWindData <- function(net_aws, height, tstep, start, end, aws_dir)
                    "obs_time >= ", start, " AND obs_time <= ", end, ")")
 
     qres <- DBI::dbGetQuery(conn, query)
-    DBI::dbDisconnect(conn)
 
     if(nrow(qres) == 0) return(list(status = 'no-data'))
 

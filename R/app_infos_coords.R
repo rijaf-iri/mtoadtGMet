@@ -50,20 +50,20 @@ readCoordsMap <- function(aws_dir){
 }
 
 readCoordsData <- function(aws_dir){
+    on.exit(DBI::dbDisconnect(con_adt))
+
     tz <- Sys.getenv("TZ")
     origin <- "1970-01-01"
-    netNOM <- c("Adcon", "Tahmo")
-    netKOLS <- c("blue", "gold")
-    netCRDS <- c("adcon_crds", "tahmo_crds")
+    netNOM <- c("Adcon_Synop", "Adcon_AWS", "Tahmo")
+    netKOLS <- c("blue", "green", "gold")
+    netCRDS <- c("adcon_synop_crds", "adcon_aws_crds", "tahmo_crds")
     nmCol <- c("id", "name", "longitude", "latitude", "altitude", "network",
                "network_code", "Region", "District", "startdate", "enddate")
 
     #############
 
-    adt_args <- readRDS(file.path(aws_dir, "AWS_DATA", "AUTH", "adt.con"))
-    con_adt <- try(connect.database(adt_args$connection,
-                   RMySQL::MySQL()), silent = TRUE)
-    if(inherits(con_adt, "try-error")){
+    con_adt <- connect.adt_db(aws_dir)
+    if(is.null(con_adt)){
         return(convJSON(NULL))
     }
 
@@ -74,8 +74,6 @@ readCoordsData <- function(aws_dir){
 
         return(crd)
     })
-
-    DBI::dbDisconnect(con_adt)
 
     crds <- lapply(crds, function(x) x[, nmCol, drop = FALSE])
     crds <- do.call(rbind, crds)
@@ -151,15 +149,15 @@ readCoordsData <- function(aws_dir){
 #' @export
 
 tableAWSCoords <- function(network, aws_dir){
+    on.exit(DBI::dbDisconnect(con_adt))
+
     tz <- Sys.getenv("TZ")
     origin <- "1970-01-01"
-    AWS_CRDS <- c("adcon_crds", "tahmo_crds")
+    AWS_CRDS <- c("adcon_synop_crds", "adcon_aws_crds", "tahmo_crds")
 
     #############
-    adt_args <- readRDS(file.path(aws_dir, "AWS_DATA", "AUTH", "adt.con"))
-    con_adt <- try(connect.database(adt_args$connection,
-                   RMySQL::MySQL()), silent = TRUE)
-    if(inherits(con_adt, "try-error")){
+    con_adt <- connect.adt_db(aws_dir)
+    if(is.null(con_adt)){
         status <- data.frame(status = "unable to connect to database")
         return(convJSON(status))
     }
@@ -167,7 +165,6 @@ tableAWSCoords <- function(network, aws_dir){
     #############
     awsnet <- AWS_CRDS[as.integer(network)]
     crds <- DBI::dbReadTable(con_adt, awsnet)
-    DBI::dbDisconnect(con_adt)
 
     #############
     crds$startdate <- as.POSIXct(as.integer(crds$startdate), origin = origin, tz = tz)
@@ -202,15 +199,15 @@ tableAWSCoords <- function(network, aws_dir){
 getAWSTimeRange <- function(id, network, aws_dir){
     tz <- Sys.getenv("TZ")
     origin <- "1970-01-01"
-    AWS_CRDS <- c("adcon_crds", "tahmo_crds")
+    AWS_CRDS <- c("adcon_synop_crds", "adcon_aws_crds", "tahmo_crds")
 
     #############
-    adt_args <- readRDS(file.path(aws_dir, "AWS_DATA", "AUTH", "adt.con"))
-    con_adt <- try(connect.database(adt_args$connection,
-                   RMySQL::MySQL()), silent = TRUE)
-    if(inherits(con_adt, "try-error")){
+    con_adt <- connect.adt_db(aws_dir)
+    if(is.null(con_adt)){
+        status <- data.frame(status = "unable to connect to database")
         return(convJSON(NULL))
     }
+
 
     net_dat <- AWS_CRDS[as.integer(network)]
 

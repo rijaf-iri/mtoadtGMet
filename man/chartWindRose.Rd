@@ -8,7 +8,7 @@ chartWindRose(net_aws, height, tstep, start, end, aws_dir)
 }
 \arguments{
 \item{net_aws}{the network code and AWS ID, form <network code>_<AWS ID>. 
-AWS network code, 1: adcon, 2: tahmo.}
+AWS network code, 1: adcon_synop, 2: adcon_aws, 3: tahmo.}
 
 \item{height}{wind speed and direction heights above ground, format "<speedHeight>_<directionHeight>".}
 

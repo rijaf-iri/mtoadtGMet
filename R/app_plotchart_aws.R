@@ -4,7 +4,7 @@
 #' Get minutes data to display on chart.
 #' 
 #' @param net_aws the network code and AWS ID, form <network code>_<AWS ID>. 
-#' AWS network code, 1: adcon, 2: tahmo.
+#' AWS network code, 1: adcon_synop, 2: adcon_aws, 3: tahmo.
 #' @param var_hgt the variable code and observation height, form  <var code>_<height>.
 #' @param stat statistic code.
 #' @param start start time.
@@ -20,6 +20,8 @@
 chartMinAWSData <- function(net_aws, var_hgt, stat, start, end,
                             plotrange, aws_dir)
 {
+    on.exit(DBI::dbDisconnect(conn))
+
     tz <- Sys.getenv("TZ")
     origin <- "1970-01-01"
     timestep_aws <- c(15, 5)
@@ -66,10 +68,8 @@ chartMinAWSData <- function(net_aws, var_hgt, stat, start, end,
     end <- as.numeric(end)
 
     ######
-    adt_args <- readRDS(file.path(aws_dir, "AWS_DATA", "AUTH", "adt.con"))
-    conn <- try(connect.database(adt_args$connection,
-                   RMySQL::MySQL()), silent = TRUE)
-    if(inherits(conn, "try-error")){
+    conn <- connect.adt_db(aws_dir)
+    if(is.null(conn)){
         OUT$opts$status <- 'unable to connect to database'
         return(convJSON(OUT))
     }
@@ -89,7 +89,6 @@ chartMinAWSData <- function(net_aws, var_hgt, stat, start, end,
     }
 
     qres <- DBI::dbGetQuery(conn, query)
-    DBI::dbDisconnect(conn)
 
     if(nrow(qres) == 0) return(convJSON(OUT))
 
@@ -183,7 +182,7 @@ chartMinAWSData <- function(net_aws, var_hgt, stat, start, end,
 #' 
 #' @param tstep the time step of the data.
 #' @param net_aws the network code and AWS ID, form <network code>_<AWS ID>.
-#' AWS network code, 1: adcon, 2: tahmo.
+#' AWS network code, 1: adcon_synop, 2: adcon_aws, 3: tahmo.
 #' @param var_hgt the variable code and observation height, form  <var code>_<height>.
 #' @param pars statistic name.
 #' @param start start time.
@@ -199,6 +198,8 @@ chartMinAWSData <- function(net_aws, var_hgt, stat, start, end,
 chartAggrAWSData <- function(tstep, net_aws, var_hgt, pars,
                              start, end, plotrange, aws_dir)
 {
+    on.exit(DBI::dbDisconnect(conn))
+
     tz <- Sys.getenv("TZ")
     origin <- "1970-01-01"
 
@@ -234,10 +235,8 @@ chartAggrAWSData <- function(tstep, net_aws, var_hgt, pars,
                 filename = filename), data = NULL, var = var_hgt[1])
 
     ######
-    adt_args <- readRDS(file.path(aws_dir, "AWS_DATA", "AUTH", "adt.con"))
-    conn <- try(connect.database(adt_args$connection,
-                   RMySQL::MySQL()), silent = TRUE)
-    if(inherits(conn, "try-error")){
+    conn <- connect.adt_db(aws_dir)
+    if(is.null(conn)){
         OUT$opts$status <- 'unable to connect to database'
         return(convJSON(OUT))
     }
@@ -273,7 +272,6 @@ chartAggrAWSData <- function(tstep, net_aws, var_hgt, pars,
     }
 
     qres <- DBI::dbGetQuery(conn, query)
-    DBI::dbDisconnect(conn)
 
     if(nrow(qres) == 0) return(convJSON(OUT))
 
@@ -428,7 +426,7 @@ chartAggrAWSData <- function(tstep, net_aws, var_hgt, pars,
 #' 
 #' @param tstep the time step of the data.
 #' @param net_aws the network code and AWS ID, form <network code>_<AWS ID>. 
-#' AWS network code, 1: adcon, 2: tahmo.
+#' AWS network code, 1: adcon_synop, 2: adcon_aws, 3: tahmo.
 #' @param start start date.
 #' @param end end date.
 #' @param aws_dir full path to the directory containing ADT.\cr
@@ -450,7 +448,7 @@ tableAggrAWSData <- function(tstep, net_aws, start, end, aws_dir){
 #' 
 #' @param tstep the time step of the data.
 #' @param net_aws a vector of the network code and AWS ID, form <network code>_<AWS ID>. 
-#' AWS network code, 1: adcon, 2: tahmo.
+#' AWS network code, 1: adcon_synop, 2: adcon_aws, 3: tahmo.
 #' @param var_hgt the variable code and observation height, form  <var code>_<height>.
 #' @param pars parameters.
 #' @param start start time.
@@ -465,6 +463,8 @@ tableAggrAWSData <- function(tstep, net_aws, start, end, aws_dir){
 chartAggrAWSDataSel <- function(tstep, net_aws, var_hgt, pars,
                                 start, end, aws_dir)
 {
+    on.exit(DBI::dbDisconnect(conn))
+
     tz <- Sys.getenv("TZ")
     origin <- "1970-01-01"
 
@@ -500,10 +500,8 @@ chartAggrAWSDataSel <- function(tstep, net_aws, var_hgt, pars,
     out <- list(data = "null", opts = opts, var = varlab)
 
     ######
-    adt_args <- readRDS(file.path(aws_dir, "AWS_DATA", "AUTH", "adt.con"))
-    conn <- try(connect.database(adt_args$connection,
-                   RMySQL::MySQL()), silent = TRUE)
-    if(inherits(conn, "try-error")){
+    conn <- connect.adt_db(aws_dir)
+    if(is.null(conn)){
         out$opts$status <- "failed-connection"
         return(convJSON(out))
     }
@@ -531,7 +529,6 @@ chartAggrAWSDataSel <- function(tstep, net_aws, var_hgt, pars,
         ") AND (", "obs_time >= ", start, " AND obs_time <= ", end, ")")
 
     qres <- DBI::dbGetQuery(conn, query)
-    DBI::dbDisconnect(conn)
 
     if(nrow(qres) == 0){
         out$opts$status <- "no-data"
@@ -673,7 +670,7 @@ chartAggrAWSDataSel <- function(tstep, net_aws, var_hgt, pars,
 #' 
 #' @param tstep the time step of the data.
 #' @param net_aws a vector of the network code and AWS ID, form <network code>_<AWS ID>. 
-#' AWS network code, 1: adcon, 2: tahmo.
+#' AWS network code, 1: adcon_synop, 2: adcon_aws, 3: tahmo.
 #' @param var_hgt the variable code and observation height, form  <var code>_<height>.
 #' @param pars parameters.
 #' @param start start time.

@@ -3,7 +3,7 @@
 #' Get minutes data for download.
 #' 
 #' @param net_aws the network code and AWS ID, form <network code>_<AWS ID>. 
-#' AWS network code, 1: adcon, 2: tahmo.
+#' AWS network code, 1: adcon_synop, 2: adcon_aws, 3: tahmo.
 #' @param var_hgt the variable code and observation height, form <var code>_<height>.
 #' @param start start time.
 #' @param end end time.
@@ -16,6 +16,7 @@
 
 downAWSMinDataCSV <- function(net_aws, var_hgt, start, end, aws_dir)
 {
+    on.exit(DBI::dbDisconnect(conn))
     tz <- Sys.getenv("TZ")
     origin <- "1970-01-01"
 
@@ -49,10 +50,8 @@ downAWSMinDataCSV <- function(net_aws, var_hgt, start, end, aws_dir)
     end <- as.numeric(end)
 
     ######
-    adt_args <- readRDS(file.path(aws_dir, "AWS_DATA", "AUTH", "adt.con"))
-    conn <- try(connect.database(adt_args$connection,
-                   RMySQL::MySQL()), silent = TRUE)
-    if(inherits(conn, "try-error")){
+    conn <- connect.adt_db(aws_dir)
+    if(is.null(conn)){
         OUT$data <- data.frame(status = "unable to connect to database")
         return(convJSON(OUT))
     }
@@ -63,7 +62,6 @@ downAWSMinDataCSV <- function(net_aws, var_hgt, start, end, aws_dir)
                     ") AND (", "obs_time >= ", start, " AND obs_time <= ", end, ")")
 
     qres <- DBI::dbGetQuery(conn, query)
-    DBI::dbDisconnect(conn)
 
     if(nrow(qres) == 0) {
         OUT$data <- data.frame(status = "no data")
@@ -102,7 +100,7 @@ downAWSMinDataCSV <- function(net_aws, var_hgt, start, end, aws_dir)
 #' 
 #' @param tstep the time step of the data.
 #' @param net_aws the network code and AWS ID, form <network code>_<AWS ID>. 
-#' AWS network code, 1: adcon, 2: tahmo.
+#' AWS network code, 1: adcon_synop, 2: adcon_aws, 3: tahmo.
 #' @param start start date.
 #' @param end end date.
 #' @param aws_dir full path to the directory containing ADT.\cr
@@ -124,7 +122,7 @@ downTableAggrCSV <- function(tstep, net_aws, start, end, aws_dir){
 #' 
 #' @param tstep the time step of the data.
 #' @param net_aws the network code and AWS ID, form <network code>_<AWS ID>. 
-#' AWS network code, 1: adcon, 2: tahmo.
+#' AWS network code, 1: adcon_synop, 2: adcon_aws, 3: tahmo.
 #' @param var_hgt the variable code and observation height, form  <var code>_<height>.
 #' @param start start date.
 #' @param end end date.
@@ -158,7 +156,7 @@ downAWSAggrOneVarCSV <- function(tstep, net_aws, var_hgt, start, end, aws_dir){
 #' 
 #' @param tstep the time step of the data.
 #' @param net_aws a vector of the network code and AWS ID, form <network code>_<AWS ID>. 
-#' AWS network code, 1: adcon, 2: tahmo.
+#' AWS network code, 1: adcon_synop, 2: adcon_aws, 3: tahmo.
 #' @param var_hgt the variable code and observation height, form  <var code>_<height>.
 #' @param pars parameters.
 #' @param start start time.
@@ -239,7 +237,7 @@ downAWSAggrCDTDataCSV <- function(tstep, var_hgt, pars, start, end, aws_dir)
 #' 
 #' @param tstep time step of the data.
 #' @param net_aws the network code and AWS ID, form <network code>_<AWS ID>. 
-#' AWS network code, 1: adcon, 2: tahmo.
+#' AWS network code, 1: adcon_synop, 2: adcon_aws, 3: tahmo.
 #' @param height the observation height.
 #' @param start start time.
 #' @param end end time.
@@ -276,7 +274,7 @@ downWindBarbCSV <- function(net_aws, height, tstep, start, end, aws_dir)
 #' 
 #' @param tstep time step of the data.
 #' @param net_aws the network code and AWS ID, form <network code>_<AWS ID>. 
-#' AWS network code, 1: tahmo, 2: campbell, 3: sutron, 4: seba, 5: microstep, 6: adcon.
+#' AWS network code, 1: adcon_synop, 2: adcon_aws, 3: tahmo.
 #' @param height the observation height.
 #' @param start start time.
 #' @param end end time.
@@ -363,7 +361,7 @@ downRainAccumulSP <- function(tstep, time, accumul, aws_dir){
 #' 
 #' @param tstep time basis to accumulate the data.
 #' @param net_aws a vector of the network code and AWS ID, form <network code>_<AWS ID>. 
-#' AWS network code, 1: adcon, 2: tahmo.
+#' AWS network code, 1: adcon_synop, 2: adcon_aws, 3: tahmo.
 #' @param start start date.
 #' @param end end date.
 #' @param accumul accumulation duration.

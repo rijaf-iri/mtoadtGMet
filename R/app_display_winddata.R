@@ -3,7 +3,7 @@
 #' Get wind data for wind barb display.
 #' 
 #' @param net_aws the network code and AWS ID, form <network code>_<AWS ID>. 
-#' AWS network code, 1: adcon, 2: tahmo.
+#' AWS network code, 1: adcon_synop, 2: adcon_aws, 3: tahmo.
 #' @param height wind speed and direction heights above ground, format "<speedHeight>_<directionHeight>".
 #' @param tstep time step of the data.
 #' @param start start time.
@@ -57,7 +57,7 @@ chartWindBarb <- function(net_aws, height, tstep, start, end, aws_dir)
 #' Get wind data to display wind rose.
 #' 
 #' @param net_aws the network code and AWS ID, form <network code>_<AWS ID>. 
-#' AWS network code, 1: adcon, 2: tahmo.
+#' AWS network code, 1: adcon_synop, 2: adcon_aws, 3: tahmo.
 #' @param height wind speed and direction heights above ground, format "<speedHeight>_<directionHeight>".
 #' @param tstep time step of the data.
 #' @param start start time.
@@ -82,7 +82,7 @@ chartWindRose <- function(net_aws, height, tstep, start, end, aws_dir)
 #' Plot wind rose with openair for download.
 #' 
 #' @param net_aws the network code and AWS ID, form <network code>_<AWS ID>. 
-#' AWS network code, 1: adcon, 2: tahmo.
+#' AWS network code, 1: adcon_synop, 2: adcon_aws, 3: tahmo.
 #' @param height wind speed and direction heights above ground, format "<speedHeight>_<directionHeight>".
 #' @param tstep time step of the data.
 #' @param start start time.
@@ -122,7 +122,7 @@ openairWindRose <- function(net_aws, height, tstep, start, end, aws_dir)
 #' Plot wind contour.
 #' 
 #' @param net_aws the network code and AWS ID, form <network code>_<AWS ID>. 
-#' AWS network code, 1: adcon, 2: tahmo.
+#' AWS network code, 1: adcon_synop, 2: adcon_aws, 3: tahmo.
 #' @param height wind speed and direction heights above ground, format "<speedHeight>_<directionHeight>".
 #' @param tstep time step of the data.
 #' @param start start time.

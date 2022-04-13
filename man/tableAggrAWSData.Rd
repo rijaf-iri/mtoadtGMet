@@ -10,7 +10,7 @@ tableAggrAWSData(tstep, net_aws, start, end, aws_dir)
 \item{tstep}{the time step of the data.}
 
 \item{net_aws}{the network code and AWS ID, form <network code>_<AWS ID>. 
-AWS network code, 1: adcon, 2: tahmo.}
+AWS network code, 1: adcon_synop, 2: adcon_aws, 3: tahmo.}
 
 \item{start}{start date.}
 

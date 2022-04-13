@@ -1,4 +1,6 @@
 
+Sys.setenv(TZ = "Africa/Accra")
+
 .onLoad <- function(libname, pkgname){
     Sys.setenv(TZ = "Africa/Accra")
 }
@@ -23,21 +25,6 @@ convCSV <- function(obj, col.names = TRUE){
 
     return(don)
 }
-
-connect.database <- function(con_args, drv){
-    args <- c(list(drv = drv), con_args)
-    con <- do.call(DBI::dbConnect, args)
-    con
-}
-
-## replaced by DBI::dbGetQuery
-getQuery <- function(con, query){
-    res <- DBI::dbSendQuery(con, query)
-    out <- DBI::dbFetch(res)
-    DBI::dbClearResult(res)
-    return(out)
-}
-
 
 char_utc2local_time <- function(dates, format, tz){
     x <- strptime(dates, format, tz = "UTC")
@@ -107,6 +94,44 @@ nb_day_of_dekad <- function(daty){
     nbd <- rep(10, length(daty))
     nbd[day == 3] <- nb_day_of_month(daty[day == 3]) - 20
     return(nbd)
+}
+
+#########
+
+# connect.database <- function(con_args, drv){
+#     args <- c(list(drv = drv), con_args)
+#     con <- do.call(DBI::dbConnect, args)
+#     con
+# }
+
+connect.DBI <- function(con_args, drv){
+    args <- c(list(drv = drv), con_args)
+    con <- try(do.call(DBI::dbConnect, args), silent = TRUE)
+    if(inherits(con, "try-error")) return(NULL)
+    con
+}
+
+connect.RODBC <- function(con_args){
+    args <- paste0(names(con_args), '=', unlist(con_args))
+    args <- paste(args, collapse = ";")
+    args <- list(connection = args, readOnlyOptimize = TRUE)
+    con <- try(do.call(RODBC::odbcDriverConnect, args), silent = TRUE)
+    if(inherits(con, "try-error")) return(NULL)
+    con
+}
+
+connect.adt_db <- function(dirAWS){
+    ff <- file.path(dirAWS, "AWS_DATA", "AUTH", "adt.con")
+    adt <- readRDS(ff)
+    conn <- connect.DBI(adt$connection, RMySQL::MySQL())
+    if(is.null(conn)){
+        Sys.sleep(3)
+        conn <- connect.DBI(adt$connection, RMySQL::MySQL())
+        if(is.null(conn)) return(NULL)
+    }
+
+    DBI::dbExecute(conn, "SET GLOBAL local_infile=1")
+    return(conn)
 }
 
 #########
