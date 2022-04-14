@@ -479,7 +479,8 @@ getWindData <- function(net_aws, height, tstep, start, end, aws_dir)
 
     ######
 
-    timestep_aws <- c(15, 15, 5)
+    netInfo <- aws_network_info()
+    timestep_aws <- netInfo$tstep
 
     ######
     parsFile <- file.path(aws_dir, "AWS_DATA", "JSON", "aws_parameters.json")

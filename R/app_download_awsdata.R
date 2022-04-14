@@ -17,6 +17,7 @@
 downAWSMinDataCSV <- function(net_aws, var_hgt, start, end, aws_dir)
 {
     on.exit(DBI::dbDisconnect(conn))
+
     tz <- Sys.getenv("TZ")
     origin <- "1970-01-01"
 

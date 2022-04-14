@@ -188,8 +188,13 @@ spRainAccumulAWS <- function(tstep, time, accumul, aws_dir){
 
     tz <- Sys.getenv("TZ")
     origin <- "1970-01-01"
-    netNOM <- c("Adcon_Synop", "Adcon_AWS", "Tahmo")
-    netCRDS <- c("adcon_synop_crds", "adcon_aws_crds", "tahmo_crds")
+
+    ####
+
+    netInfo <- aws_network_info()
+    netNOM <- netInfo$names
+    netCRDS <- netInfo$coords
+
     nmCol <- c("id", "name", "longitude", "latitude", "altitude", "network")
 
     ####

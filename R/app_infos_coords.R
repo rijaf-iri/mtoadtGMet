@@ -54,9 +54,14 @@ readCoordsData <- function(aws_dir){
 
     tz <- Sys.getenv("TZ")
     origin <- "1970-01-01"
-    netNOM <- c("Adcon_Synop", "Adcon_AWS", "Tahmo")
+
+    #############
+
+    netInfo <- aws_network_info()
+    netNOM <- netInfo$names
+    netCRDS <- netInfo$coords
+
     netKOLS <- c("blue", "green", "gold")
-    netCRDS <- c("adcon_synop_crds", "adcon_aws_crds", "tahmo_crds")
     nmCol <- c("id", "name", "longitude", "latitude", "altitude", "network",
                "network_code", "Region", "District", "startdate", "enddate")
 
@@ -153,7 +158,11 @@ tableAWSCoords <- function(network, aws_dir){
 
     tz <- Sys.getenv("TZ")
     origin <- "1970-01-01"
-    AWS_CRDS <- c("adcon_synop_crds", "adcon_aws_crds", "tahmo_crds")
+
+    #############
+
+    netInfo <- aws_network_info()
+    AWS_CRDS <- netInfo$coords
 
     #############
     con_adt <- connect.adt_db(aws_dir)
@@ -199,7 +208,11 @@ tableAWSCoords <- function(network, aws_dir){
 getAWSTimeRange <- function(id, network, aws_dir){
     tz <- Sys.getenv("TZ")
     origin <- "1970-01-01"
-    AWS_CRDS <- c("adcon_synop_crds", "adcon_aws_crds", "tahmo_crds")
+
+    #############
+
+    netInfo <- aws_network_info()
+    AWS_CRDS <- netInfo$coords
 
     #############
     con_adt <- connect.adt_db(aws_dir)
